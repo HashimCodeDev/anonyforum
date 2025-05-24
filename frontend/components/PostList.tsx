@@ -14,10 +14,11 @@ type Post = {
 export default function PostList() {
 	const [posts, setPosts] = useState<Post[]>([]);
 	const [loading, setLoading] = useState(true);
+	const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
 
 	const fetchPosts = () => {
 		axios
-			.get("http://localhost:5000/api/posts/getAllPosts")
+			.get(`${backendUrl}/api/posts/getAllPosts`)
 			.then((res) => {
 				setPosts(res.data);
 			})
@@ -53,9 +54,7 @@ export default function PostList() {
 		try {
 			if (alreadyVoted) {
 				// ❌ Remove vote
-				await axios.put(
-					`http://localhost:5000/api/posts/${type}Update/${postId}`
-				);
+				await axios.put(`${backendUrl}/api/posts/${type}Update/${postId}`);
 				localStorage.setItem(
 					storageKey,
 					JSON.stringify(votedPosts.filter((id: string) => id !== postId))
@@ -65,7 +64,7 @@ export default function PostList() {
 				// 🔁 Remove opposite vote if exists
 				if (alreadyReverseVoted) {
 					await axios.put(
-						`http://localhost:5000/api/posts/${
+						`${backendUrl}/api/posts/${
 							type === "upvote" ? "downvote" : "upvote"
 						}Update/${postId}`
 					);
@@ -76,9 +75,7 @@ export default function PostList() {
 				}
 
 				// ✅ Add vote
-				await axios.put(
-					`http://localhost:5000/api/posts/${type}Post/${postId}`
-				);
+				await axios.put(`${backendUrl}/api/posts/${type}Post/${postId}`);
 				localStorage.setItem(
 					storageKey,
 					JSON.stringify([...votedPosts, postId])

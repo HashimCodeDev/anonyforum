@@ -6,6 +6,7 @@ export default function PostForm() {
 	const [content, setContent] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [message, setMessage] = useState("");
+	const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
 
 	const handleSubmit = async () => {
 		if (!content.trim()) {
@@ -15,13 +16,10 @@ export default function PostForm() {
 
 		try {
 			setLoading(true);
-			const response = await axios.post(
-				"http://localhost:5000/api/posts/createPost",
-				{
-					title: "Anonymous",
-					content: content.trim(),
-				}
-			);
+			const response = await axios.post(`${backendUrl}/api/posts/createPost`, {
+				title: "Anonymous",
+				content: content.trim(),
+			});
 
 			if (response.data?.message) {
 				setMessage(response.data.message);
