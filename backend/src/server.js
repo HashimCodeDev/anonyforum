@@ -3,7 +3,6 @@ const app = express();
 const cors = require("cors");
 const dotenv = require("dotenv");
 const postRoutes = require("./routes/post.routes");
-const threadRoutes = require("./routes/thread.routes");
 dotenv.config();
 
 // CORS configuration
@@ -20,7 +19,6 @@ app.use(express.json());
 
 // Routes
 app.use("/api/posts", postRoutes);
-app.use("/api/threads", threadRoutes);
 
 // DB Connection
 require("./config/db")();
