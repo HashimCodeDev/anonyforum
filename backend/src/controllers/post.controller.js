@@ -60,7 +60,7 @@ const downvotePost = async (req, res) => {
 		const post = await Post.findById(req.params.id);
 		if (!post) return res.status(404).json({ error: "Post not found" });
 
-		post.upvotes -= 1;
+		post.downvotes += 1;
 		await post.save();
 
 		res.status(200).json(post);
@@ -69,9 +69,40 @@ const downvotePost = async (req, res) => {
 	}
 };
 
+const upvoteUpdate = async (req, res) => {
+	try {
+		const post = await Post.findById(req.params.id);
+		if (!post) return res.status(404).json({ error: "Post not found" });
+
+		post.upvotes -= 1;
+		await post.save();
+
+		res.status(200).json(post);
+	} catch (err) {
+		res.status(500).json({ error: "Server error while updating upvotes" });
+	}
+};
+
+const downvoteUpdate = async (req, res) => {
+	try {
+		const post = await Post.findById(req.params.id);
+		if (!post) return res.status(404).json({ error: "Post not found" });
+
+		post.downvotes -= 1;
+		await post.save();
+
+		res.status(200).json(post);
+	} catch (err) {
+		res.status(500).json({ error: "Server error while updating downvotes" });
+	}
+};
+
 module.exports = {
 	createPost,
 	getAllPosts,
 	getPostById,
 	upvotePost,
+	downvotePost,
+	upvoteUpdate,
+	downvoteUpdate,
 };
