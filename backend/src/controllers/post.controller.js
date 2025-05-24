@@ -18,7 +18,7 @@ const createPost = async (req, res) => {
 // Get all posts
 const getAllPosts = async (req, res) => {
 	try {
-		const posts = await Post.find().sort({ createdAt: -1 });
+		const posts = await Post.find().sort({ upvotes: -1, createdAt: -1 }); // Sort by upvotes and then by creation date
 		res.status(200).json(posts);
 	} catch (err) {
 		res.status(500).json({ error: "Server error while fetching posts" });
