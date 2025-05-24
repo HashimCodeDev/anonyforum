@@ -14,7 +14,8 @@ type Post = {
 export default function PostList() {
 	const [posts, setPosts] = useState<Post[]>([]);
 	const [loading, setLoading] = useState(true);
-	const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
+	const backendUrl =
+		process.env.BACKEND_URL || "https://anonyforum.onrender.com";
 
 	const fetchPosts = () => {
 		axios
