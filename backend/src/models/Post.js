@@ -13,6 +13,10 @@ const postSchema = new mongoose.Schema({
 		trim: true,
 		maxlength: 10000,
 	},
+	upvotes: {
+		type: Number,
+		default: 0,
+	},
 	createdAt: {
 		type: Date,
 		default: Date.now,
