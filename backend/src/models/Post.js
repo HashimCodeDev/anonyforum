@@ -17,6 +17,10 @@ const postSchema = new mongoose.Schema({
 		type: Number,
 		default: 0,
 	},
+	reply: {
+		type: String,
+		default: "",
+	},
 	createdAt: {
 		type: Date,
 		default: Date.now,
