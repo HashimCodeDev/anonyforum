@@ -4,7 +4,6 @@ import PostList from "@/components/PostList";
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#F2F6FB] text-black font-sans px-8 pt-6 max-w-4xl mx-auto">
-      {/* Header + Post Count Row */}
       <header className="mb-4 flex items-start justify-between">
         <div>
           <h1 className="text-[24px] font-semibold tracking-tight text-[#1A1A1A]">Community Voices</h1>
@@ -15,10 +14,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Post Form */}
       <PostForm />
-
-      {/* Post List */}
       <PostList />
     </main>
   );
