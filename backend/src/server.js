@@ -10,12 +10,13 @@ const allowedOrigins =
 	process.env.FRONTEND_URL || "https://anonyforum.vercel.app/";
 
 // Middleware
-app.use(
-	cors({
-		origin: allowedOrigins,
-		credentials: true,
-	})
-);
+// app.use(
+// 	cors({
+// 		origin: allowedOrigins,
+// 		credentials: true,
+// 	})
+// );
+app.use(cors());
 app.use(express.json());
 
 // Routes
