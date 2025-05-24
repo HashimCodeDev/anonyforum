@@ -1,0 +1,24 @@
+{
+  "name": "community-voices-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "autoprefixer": "^10.4.17",
+    "axios": "^1.9.0",
+    "next": "14.1.4",
+    "postcss": "^8.4.23",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "tailwindcss": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.21",
+    "@types/react": "19.1.5",
+    "typescript": "^5.3.3"
+  }
+}
