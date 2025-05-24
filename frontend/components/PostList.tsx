@@ -14,6 +14,8 @@ type Post = {
 export default function PostList() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reply, setReply] = useState<{ [key: string]: string }>({});
+  const [message, setMessage] = useState<string>("");
 
   const fetchPosts = () => {
     axios
@@ -48,6 +50,22 @@ export default function PostList() {
       fetchPosts();
     } catch (error) {
       console.error(`Error ${type}ing post:`, error);
+    }
+  };
+
+  const handleReply = async (postId: string) => {
+    const content = reply[postId];
+    if (!content?.trim()) return;
+
+    try {
+      await axios.post(`http://localhost:5000/api/posts/addReply/${postId}`, {
+        content,
+      });
+      setReply((prev) => ({ ...prev, [postId]: "" }));
+      setMessage("Reply posted successfully.");
+    } catch (error) {
+      console.error("Failed to post reply:", error);
+      setMessage("Failed to post reply.");
     }
   };
 
@@ -111,6 +129,25 @@ export default function PostList() {
               Downvote
             </button>
             <p className="text-xs text-[#7A7A7A] self-center">Downvotes {post.downvotes}</p>
+          </div>
+
+          {/* Reply box - for admin use only */}
+          <div className="mt-4">
+            <textarea
+              className="w-full border border-[#CCCCCC] rounded-md p-2 text-xs"
+              placeholder="Write a reply as admin..."
+              value={reply[post._id] || ""}
+              onChange={(e) =>
+                setReply((prev) => ({ ...prev, [post._id]: e.target.value }))
+              }
+            ></textarea>
+            <button
+              className="mt-2 bg-green-600 text-white text-xs px-4 py-1 rounded-md"
+              onClick={() => handleReply(post._id)}
+            >
+              Post Reply
+            </button>
+            {message && <p className="text-xs text-green-600 mt-1">{message}</p>}
           </div>
         </div>
       ))}
