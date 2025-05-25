@@ -65,6 +65,12 @@ export default function PostList() {
 			// Load local vote data
 			const localVotes = JSON.parse(localStorage.getItem("userVotes") || "{}");
 			const userVote = localVotes[postId] || null;
+			const anonId = localStorage.getItem("anonId") || "anonymous";
+			if (!anonId) {
+				console.error("Anonymous ID not found. Please refresh the page.");
+				window.location.reload();
+				return;
+			}
 
 			const updatedPosts = posts.map((post) => {
 				if (post._id === postId) {
@@ -113,6 +119,7 @@ export default function PostList() {
 			const response = await axios.put(`${backendUrl}/api/posts/vote`, {
 				postId,
 				voteType,
+				anonId,
 			});
 
 			// Final sync

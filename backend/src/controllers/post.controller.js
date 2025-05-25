@@ -75,7 +75,7 @@ const getPostCount = async (req, res) => {
 };
 
 const votePost = async (req, res) => {
-	const { postId, voteType } = req.body;
+	const { postId, voteType, anonId } = req.body;
 
 	if (!postId || !voteType) {
 		return res
@@ -83,39 +83,50 @@ const votePost = async (req, res) => {
 			.json({ error: "Post ID and vote type are required" });
 	}
 
+	if (!anonId) {
+		return res
+			.status(400)
+			.json({ error: "Anonymous ID is required for voting" });
+	}
+
 	try {
 		const post = await Post.findById(postId);
 		if (!post) return res.status(404).json({ error: "Post not found" });
 
-		switch (voteType) {
-			case "up":
-				if (post.userVote === "neutral") {
-					post.upvotes += 1;
-					post.userVote = "up";
-				} else if (post.userVote === "down") {
+		// Check if the user has already voted
+		const existingVote = post.votes.find((vote) => vote.anonId === anonId);
+
+		if (existingVote) {
+			// If same vote again, remove vote
+			if (existingVote.voteType === voteType) {
+				post.votes = post.votes.filter((v) => v.anonId !== anonId);
+				if (voteType === "up") {
+					post.upvotes -= 1;
+				} else if (voteType === "down") {
+					post.downvotes -= 1;
+				}
+				return res
+					.status(200)
+					.json({ message: "Vote removed successfully", post });
+			} else {
+				// Change vote type to the new one and update vote count
+				existingVote.voteType = voteType;
+				if (voteType === "up") {
 					post.upvotes += 1;
 					post.downvotes -= 1;
-					post.userVote = "up";
-				} else if (post.userVote === "up") {
-					post.upvotes -= 1;
-					post.userVote = "neutral";
-				}
-				break;
-			case "down":
-				if (post.userVote === "neutral") {
-					post.downvotes += 1;
-					post.userVote = "down";
-				} else if (post.userVote === "up") {
+				} else if (voteType === "down") {
 					post.downvotes += 1;
 					post.upvotes -= 1;
-					post.userVote = "down";
-				} else if (post.userVote === "down") {
-					post.downvotes -= 1;
-					post.userVote = "neutral";
 				}
-				break;
-			default:
-				return res.status(400).json({ error: "Invalid vote type" });
+			}
+		} else {
+			// Add new vote and update vote count
+			post.votes.push({ anonId, voteType });
+			if (voteType === "up") {
+				post.upvotes += 1;
+			} else if (voteType === "down") {
+				post.downvotes += 1;
+			}
 		}
 
 		await post.save();

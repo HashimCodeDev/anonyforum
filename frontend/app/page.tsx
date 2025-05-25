@@ -2,11 +2,15 @@
 import PostForm from "@/components/PostForm";
 import PostList from "@/components/PostList";
 import { useEffect, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 export default function HomePage() {
 	const [length, setLength] = useState<string | null>(null);
 
 	useEffect(() => {
+		if (!localStorage.getItem("anonId")) {
+			localStorage.setItem("anonId", uuidv4());
+		}
 		const updateLength = () => {
 			const storedLength = localStorage.getItem("length");
 			setLength(storedLength);

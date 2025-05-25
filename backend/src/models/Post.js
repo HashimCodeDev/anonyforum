@@ -21,11 +21,13 @@ const postSchema = new mongoose.Schema({
 		type: Number,
 		default: 0,
 	},
-	userVote: {
-		type: String,
-		enum: ["up", "down", "neutral"],
-		default: "neutral",
-	},
+	votes: [
+		{
+			anonId: String,
+			voteType: { type: String, enum: ["up", "down", "neutral"] },
+		},
+	],
+
 	reply: {
 		type: String,
 		default: "",
