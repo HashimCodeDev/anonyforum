@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { ChevronUp, ChevronDown } from "lucide-react";
 
 type Post = {
 	_id: string;
@@ -8,12 +9,14 @@ type Post = {
 	content: string;
 	upvotes: number;
 	downvotes: number;
+	userVote: "up" | "down" | null;
 	createdAt: string;
 };
 
 export default function PostList() {
 	const [posts, setPosts] = useState<Post[]>([]);
 	const [loading, setLoading] = useState(true);
+
 	const backendUrl =
 		process.env.NEXT_PUBLIC_BACKEND_URL || "https://anonyforum.onrender.com";
 
@@ -27,8 +30,6 @@ export default function PostList() {
 					}
 					setPosts(res.data.posts);
 					localStorage.setItem("length", res.data.count);
-					console.log("Posts length saved to localStorage:", res.data.count);
-					console.log("Posts fetched successfully:", res.data);
 				})
 				.catch((err) => {
 					console.error("Failed to fetch posts:", err);
@@ -47,57 +48,75 @@ export default function PostList() {
 		return () => clearInterval(interval);
 	}, []);
 
-	const handleVote = async (
-		upvotes: number,
-		downvotes: number,
-		postId: string,
-		type: "upvote" | "downvote"
-	) => {
-		const storageKey = type === "upvote" ? "votedPosts" : "downvotedPosts";
-		const reverseKey = type === "upvote" ? "downvotedPosts" : "votedPosts";
-
-		const votedPosts = JSON.parse(localStorage.getItem(storageKey) || "[]");
-		const reversePosts = JSON.parse(localStorage.getItem(reverseKey) || "[]");
-
-		const alreadyVoted = votedPosts.includes(postId);
-		const alreadyReverseVoted = reversePosts.includes(postId);
-
+	const handleVote = async (postId: string, voteType: "up" | "down") => {
 		try {
-			if (alreadyVoted) {
-				// ❌ Remove vote
-				await axios.put(`${backendUrl}/api/posts/${type}Update/${postId}`);
-				localStorage.setItem(
-					storageKey,
-					JSON.stringify(votedPosts.filter((id: string) => id !== postId))
-				);
-				console.log(`${type} removed`);
-			} else {
-				// 🔁 Remove opposite vote if exists
-				if (alreadyReverseVoted) {
-					await axios.put(
-						`${backendUrl}/api/posts/${
-							type === "upvote" ? "downvote" : "upvote"
-						}Update/${postId}`
-					);
-					localStorage.setItem(
-						reverseKey,
-						JSON.stringify(reversePosts.filter((id: string) => id !== postId))
-					);
+			// Load local vote data
+			const localVotes = JSON.parse(localStorage.getItem("userVotes") || "{}");
+			const userVote = localVotes[postId] || null;
+			console.log("User vote for post:", postId, "is", userVote);
+
+			const updatedPosts = posts.map((post) => {
+				if (post._id === postId) {
+					let newUpvotes = post.upvotes;
+					let newDownvotes = post.downvotes;
+					let newUserVote = voteType;
+
+					if (userVote === voteType) {
+						// Unvote
+						newUserVote = null;
+						console.log("Before unvote:", post.upvotes, post.downvotes);
+						if (voteType === "up") newUpvotes--;
+						else newDownvotes--;
+						console.log("After unvote:", newUpvotes, newDownvotes);
+					} else if (userVote) {
+						// Switch vote
+						if (userVote === "up") {
+							newUpvotes--;
+							newDownvotes++;
+						} else {
+							newDownvotes--;
+							newUpvotes++;
+						}
+					} else if (!userVote) {
+						// First-time vote
+						if (voteType === "up") newUpvotes++;
+						else newDownvotes++;
+					}
+
+					// Save locally
+					const newVotes = { ...localVotes, [postId]: newUserVote };
+					if (!newUserVote) delete newVotes[postId]; // Remove if unvoted
+					localStorage.setItem("userVotes", JSON.stringify(newVotes));
+
+					return {
+						...post,
+						upvotes: newUpvotes,
+						downvotes: newDownvotes,
+						userVote: newUserVote,
+					};
 				}
+				return post;
+			});
 
-				// ✅ Add vote
-				await axios.put(`${backendUrl}/api/posts/${type}Post/${postId}`);
-				localStorage.setItem(
-					storageKey,
-					JSON.stringify([...votedPosts, postId])
-				);
-				console.log(`${type} added`);
-			}
+			setPosts(updatedPosts);
 
+			// Backend call
+			const response = await axios.put(`${backendUrl}/api/posts/vote`, {
+				postId,
+				voteType,
+			});
+
+			// Final sync
 			fetchPosts();
-		} catch (error) {
-			console.error(`Failed to toggle ${type}:`, error);
+		} catch (err) {
+			console.error("Error voting:", err);
+			fetchPosts();
 		}
+	};
+
+	const [sortBy, setSortBy] = useState("trending");
+	const handleSortChange = (newSortBy: string) => {
+		setSortBy(newSortBy);
 	};
 
 	return (
@@ -107,6 +126,39 @@ export default function PostList() {
 			</h2>
 
 			{loading && <p className="text-sm text-gray-600">Loading posts...</p>}
+
+			{/* Sort Controls */}
+			<div className="flex items-center justify-between mb-6">
+				<div className="flex items-center space-x-4">
+					<button
+						onClick={() => handleSortChange("trending")}
+						disabled={loading}
+						className={`px-4 py-2 rounded-lg text-sm font-medium ${
+							sortBy === "trending"
+								? "bg-blue-100 text-blue-700"
+								: "text-gray-600 hover:bg-gray-100"
+						} disabled:opacity-50`}
+					>
+						🔥 Trending
+					</button>
+					<button
+						onClick={() => handleSortChange("newest")}
+						disabled={loading}
+						className={`px-4 py-2 rounded-lg text-sm font-medium ${
+							sortBy === "newest"
+								? "bg-blue-100 text-blue-700"
+								: "text-gray-600 hover:bg-gray-100"
+						} disabled:opacity-50`}
+					>
+						🕐 Newest
+					</button>
+				</div>
+				{loading && (
+					<div className="flex items-center text-sm text-gray-500">
+						Refreshing...
+					</div>
+				)}
+			</div>
 
 			{posts.map((post) => (
 				<div
@@ -130,41 +182,35 @@ export default function PostList() {
 					<p className="mt-2 text-sm text-[#2A2A2A] leading-snug">
 						{post.content}
 					</p>
-					<div className="mt-2 flex items-center space-x-3 justify-start">
-						<button
-							className="text-xs bg-[#2563EB] text-white px-3 py-1 rounded-md font-medium"
-							onClick={() =>
-								handleVote(post.upvotes, post.downvotes, post._id, "upvote")
-							}
-						>
-							<img
-								src="/upvote-icon.svg"
-								alt="Upvote"
-								className="inline-block mr-1"
-								width={16}
-								height={16}
-							/>
-							Upvote
-						</button>
-						<p className="text-xs text-[#7A7A7A] self-center">
-							Upvotes {post.upvotes}
-						</p>
-
-						<button
-							className="text-xs bg-red-500 text-white px-3 py-1 rounded-md font-medium"
-							onClick={() =>
-								handleVote(post.upvotes, post.downvotes, post._id, "downvote")
-							}
-						>
-							<img
-								src="/downvote-icon.svg"
-								alt="Downvote"
-								className="inline-block mr-1"
-								width={16}
-								height={16}
-							/>
-							Downvote
-						</button>
+					{/* Voting and Actions */}
+					<div className="flex items-center justify-between">
+						<div className="flex items-center space-x-4">
+							<div className="flex items-center space-x-1">
+								<button
+									onClick={() => handleVote(post._id, "up")}
+									className={`p-2 rounded-lg transition-colors ${
+										post.userVote === "up"
+											? "bg-green-100 text-green-600"
+											: "hover:bg-gray-100 text-gray-500"
+									}`}
+								>
+									<ChevronUp className="w-5 h-5" />
+								</button>
+								<span className="font-medium text-gray-700 min-w-[2rem] text-center">
+									{post.upvotes - post.downvotes}
+								</span>
+								<button
+									onClick={() => handleVote(post._id, "down")}
+									className={`p-2 rounded-lg transition-colors ${
+										post.userVote === "down"
+											? "bg-red-100 text-red-600"
+											: "hover:bg-gray-100 text-gray-500"
+									}`}
+								>
+									<ChevronDown className="w-5 h-5" />
+								</button>
+							</div>
+						</div>
 						<p className="text-xs text-[#7A7A7A] self-center"></p>
 					</div>
 				</div>
