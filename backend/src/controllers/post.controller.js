@@ -20,7 +20,8 @@ const getAllPosts = async (req, res) => {
 	try {
 		const posts = await Post.find().sort({ upvotes: -1, createdAt: -1 }); // Sort by upvotes and then by creation date
 
-		res.status(200).json(posts, {
+		res.status(200).json({
+			posts,
 			count: posts.length,
 			message: "Posts fetched successfully",
 		});
@@ -38,6 +39,17 @@ const getPostById = async (req, res) => {
 		res.status(200).json(post);
 	} catch (err) {
 		res.status(500).json({ error: "Server error while fetching post" });
+	}
+};
+
+const getPostCount = async (req, res) => {
+	try {
+		const count = await Post.countDocuments();
+		res
+			.status(200)
+			.json({ count, message: "Total post count fetched successfully" });
+	} catch (err) {
+		res.status(500).json({ error: "Server error while fetching post count" });
 	}
 };
 
@@ -105,4 +117,5 @@ module.exports = {
 	downvotePost,
 	upvoteUpdate,
 	downvoteUpdate,
+	getPostCount,
 };

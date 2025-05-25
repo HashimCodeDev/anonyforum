@@ -8,11 +8,13 @@ const {
 	downvotePost,
 	upvoteUpdate,
 	downvoteUpdate,
+	getPostCount,
 } = require("../controllers/post.controller");
 
 router.post("/createPost", createPost); // create new post
 router.get("/getAllPosts", getAllPosts); // list all posts
 router.get("/:id", getPostById); // view one post
+router.get("/getPostCount", getPostCount); // get total post count
 router.put("/upvotePost/:id", upvotePost); // upvote a post"
 router.put("/downvotePost/:id", downvotePost); // downvote a post
 router.put("/upvoteUpdate/:id", upvoteUpdate); // update upvote count

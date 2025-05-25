@@ -1,7 +1,13 @@
+"use client";
 import PostForm from "@/components/PostForm";
 import PostList from "@/components/PostList";
+import { useEffect } from "react";
 
 export default function HomePage() {
+	useEffect(() => {
+		const length = localStorage.getItem("length");
+	}, []);
+
 	return (
 		<main className="min-h-screen bg-[#F2F6FB] text-black font-sans px-8 pt-6 max-w-4xl mx-auto">
 			<header className="mb-4 flex items-start justify-between">
@@ -44,7 +50,7 @@ export default function HomePage() {
 					</p>
 				</div>
 				<div className="text-[12px] font-semibold bg-[#D7EAFE] text-[#2563EB] px-3 py-[2px] rounded-full h-fit">
-					post counts: 001
+					post counts: {length || 0}
 				</div>
 			</header>
 

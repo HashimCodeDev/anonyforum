@@ -15,20 +15,30 @@ export default function PostList() {
 	const [posts, setPosts] = useState<Post[]>([]);
 	const [loading, setLoading] = useState(true);
 	const backendUrl =
-		process.env.BACKEND_URL || "https://anonyforum.onrender.com";
+		process.env.NEXT_PUBLIC_BACKEND_URL || "https://anonyforum.onrender.com";
 
 	const fetchPosts = () => {
-		axios
-			.get(`${backendUrl}/api/posts/getAllPosts`)
-			.then((res) => {
-				setPosts(res.data);
-			})
-			.catch((err) => {
-				console.error("Failed to fetch posts:", err);
-			})
-			.finally(() => {
-				setLoading(false);
-			});
+		try {
+			axios
+				.get(`${backendUrl}/api/posts/getAllPosts`)
+				.then((res) => {
+					if (!res.data) {
+						return console.log("No posts:", res.data.posts);
+					}
+					setPosts(res.data.posts);
+					localStorage.setItem("length", res.data.count);
+					console.log("Posts length saved to localStorage:", res.data.count);
+					console.log("Posts fetched successfully:", res.data);
+				})
+				.catch((err) => {
+					console.error("Failed to fetch posts:", err);
+				})
+				.finally(() => {
+					setLoading(false);
+				});
+		} catch (error) {
+			console.error("Error fetching posts:", error.message);
+		}
 	};
 
 	useEffect(() => {
