@@ -142,7 +142,7 @@ export default function PostList() {
 		if (storedVotes) {
 			setLocalVotes(JSON.parse(storedVotes));
 		}
-	}, [handleVote]);
+	}, [posts]);
 
 	const handleReply = async (postId: string) => {
 		const content = reply[postId];
@@ -230,9 +230,7 @@ export default function PostList() {
 						})}
 					</p>
 					<div className="border border-[#C5C5C5] rounded-md p-3 mb-2">
-						<p className="text-base text-black font-bold uppercase">
-							{post.title}
-						</p>
+						<p className="text-base text-black font-bold">{post.title}</p>
 					</div>
 					<span className="inline-block text-xs bg-[#D7EAFE] text-[#2563EB] px-3 py-[2px] rounded-full font-medium">
 						{post._id.slice(-2)}

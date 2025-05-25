@@ -1,8 +1,10 @@
 "use client";
 import { useState } from "react";
 import axios from "axios";
+import generateRandomName from "@/utils/NameGenerator";
 
 export default function PostForm() {
+	const [name, setName] = useState("");
 	const [content, setContent] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [message, setMessage] = useState("");
@@ -18,7 +20,7 @@ export default function PostForm() {
 		try {
 			setLoading(true);
 			const response = await axios.post(`${backendUrl}/api/posts/createPost`, {
-				title: "Anonymous",
+				title: name.trim() || generateRandomName() || "Anonymous",
 				content: content.trim(),
 			});
 
@@ -43,13 +45,21 @@ export default function PostForm() {
 	return (
 		<section className="mb-8 bg-white border border-[#9B9B9B] rounded-md px-6 py-4 shadow-sm">
 			<div className="w-full h-[40px] bg-[#E6E6E6] rounded-md mb-3"></div>
-
-			<textarea
-				className="w-full border border-[#7A7A7A] rounded-md p-3 text-sm text-black resize-none h-28 placeholder:text-[#9E9E9E]"
-				placeholder="SHARE YOUR STATEMENT / CONCERNS / QUESTIONS"
-				value={content}
-				onChange={(e) => setContent(e.target.value)}
-			></textarea>
+			<div className="text-xs text-[#7A7A7A] mb-2 flex flex-col gap-2">
+				<input
+					type="text"
+					className="w-full border border-[#7A7A7A] rounded-md p-3 text-sm text-black placeholder:text-[#9E9E9E]"
+					value={name}
+					placeholder="Random name or word that pops up (Optional)"
+					onChange={(e) => setName(e.target.value)}
+				/>
+				<textarea
+					className="w-full border border-[#7A7A7A] rounded-md p-3 text-sm text-black resize-none h-28 placeholder:text-[#9E9E9E]"
+					placeholder="SHARE YOUR STATEMENT / CONCERNS / QUESTIONS"
+					value={content}
+					onChange={(e) => setContent(e.target.value)}
+				></textarea>
+			</div>
 
 			<div className="mt-4 flex items-center justify-between">
 				<button
