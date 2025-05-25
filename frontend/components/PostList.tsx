@@ -9,9 +9,15 @@ type Post = {
 	content: string;
 	upvotes: number;
 	downvotes: number;
+	votes: Vote[];
 	userVote: "up" | "down" | "neutral" | null;
 	reply: string;
 	createdAt: string;
+};
+
+type Vote = {
+	anonId: string;
+	voteType: "up" | "down" | "neutral";
 };
 
 export default function PostList() {
@@ -21,6 +27,7 @@ export default function PostList() {
 	const [reply, setReply] = useState<{ [key: string]: string }>({});
 	const [message, setMessage] = useState<string | null>(null);
 	const [admin, setAdmin] = useState<boolean>(false);
+	const [localVotes, setLocalVotes] = useState<Record<string, string>>({});
 
 	const backendUrl =
 		process.env.NEXT_PUBLIC_BACKEND_URL || "https://anonyforum.onrender.com";
@@ -65,7 +72,7 @@ export default function PostList() {
 			// Load local vote data
 			const localVotes = JSON.parse(localStorage.getItem("userVotes") || "{}");
 			const userVote = localVotes[postId] || null;
-			const anonId = localStorage.getItem("anonId") || "anonymous";
+			const anonId = localStorage.getItem("anonId");
 			if (!anonId) {
 				console.error("Anonymous ID not found. Please refresh the page.");
 				window.location.reload();
@@ -130,6 +137,13 @@ export default function PostList() {
 		}
 	};
 
+	useEffect(() => {
+		const storedVotes = localStorage.getItem("userVotes");
+		if (storedVotes) {
+			setLocalVotes(JSON.parse(storedVotes));
+		}
+	}, [handleVote]);
+
 	const handleReply = async (postId: string) => {
 		const content = reply[postId];
 		if (!content?.trim()) return;
@@ -169,7 +183,6 @@ export default function PostList() {
 				OPEN BOARD
 			</h2>
 
-			{loading && <p className="text-sm text-gray-600">Loading posts...</p>}
 			{loading && <p className="text-sm text-gray-600">Loading posts...</p>}
 
 			{/* Sort Controls */}
@@ -234,7 +247,7 @@ export default function PostList() {
 								<button
 									onClick={() => handleVote(post._id, "up")}
 									className={`p-2 rounded-lg transition-colors ${
-										post.userVote === "up"
+										localVotes[post._id] === "up"
 											? "bg-green-100 text-green-600"
 											: "hover:bg-gray-100 text-gray-500"
 									}`}
@@ -247,7 +260,7 @@ export default function PostList() {
 								<button
 									onClick={() => handleVote(post._id, "down")}
 									className={`p-2 rounded-lg transition-colors ${
-										post.userVote === "down"
+										localVotes[post._id] === "down"
 											? "bg-red-100 text-red-600"
 											: "hover:bg-gray-100 text-gray-500"
 									}`}
