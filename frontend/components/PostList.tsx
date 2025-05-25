@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { ChevronUp, ChevronDown } from "lucide-react";
+import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
+import { Trash2 } from "lucide-react";
 
 type Post = {
 	_id: string;
@@ -28,6 +30,8 @@ export default function PostList() {
 	const [message, setMessage] = useState<string | null>(null);
 	const [admin, setAdmin] = useState<boolean>(false);
 	const [localVotes, setLocalVotes] = useState<Record<string, string>>({});
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+	const [isDeleting, setIsDeleting] = useState(false);
 
 	const backendUrl =
 		process.env.NEXT_PUBLIC_BACKEND_URL || "https://anonyforum.onrender.com";
@@ -177,6 +181,23 @@ export default function PostList() {
 		localStorage.setItem("length", String(sortedPosts.length));
 	};
 
+	const handleDelete = async (postId: string) => {
+		if (!admin) return;
+
+		try {
+			await axios.delete(`${backendUrl}/api/posts/deletePost`, {
+				data: { postId },
+			});
+			setPosts((prev) => prev.filter((post) => post._id !== postId));
+			setMessage("Post deleted successfully.");
+			setTimeout(() => setMessage(null), 3000);
+		} catch (err) {
+			console.error("Error deleting post:", err.message);
+			setMessage("Failed to delete post.");
+			setTimeout(() => setMessage(null), 3000);
+		}
+	};
+
 	return (
 		<section className="pt-2">
 			<h2 className="text-xs font-semibold mb-4 uppercase tracking-wide text-[#1A1A1A] bg-[#D7EAFE] inline-block px-3 py-1 rounded-md">
@@ -238,6 +259,7 @@ export default function PostList() {
 					<p className="mt-2 text-sm text-[#2A2A2A] leading-snug">
 						{post.content}
 					</p>
+					{/* Reply Button */}
 					{/* Voting and Actions */}
 					<div className="flex items-center justify-between">
 						<div className="flex items-center space-x-4">
@@ -268,7 +290,30 @@ export default function PostList() {
 							</div>
 						</div>
 						<p className="text-xs text-[#7A7A7A] self-center"></p>
+						{/* Delete Button */}
+						{admin && (
+							<button
+								onClick={() => setShowDeleteDialog(true)}
+								className="group relative inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
+							>
+								<Trash2
+									size={16}
+									className="transition-transform duration-200 group-hover:scale-110"
+								/>
+								<span>Delete Post</span>
+								<div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 rounded-lg transition-opacity duration-200"></div>
+							</button>
+						)}
 					</div>
+
+					<DeleteConfirmationDialog
+						isOpen={showDeleteDialog}
+						onClose={() => setShowDeleteDialog(false)}
+						onConfirm={() => handleDelete(post._id)}
+						title="Delete Post"
+						message="Are you sure you want to delete this post? This action cannot be undone."
+						isDeleting={isDeleting}
+					/>
 
 					{/* Display replies (if any) */}
 					{/* Admin Response */}

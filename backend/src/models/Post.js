@@ -32,6 +32,11 @@ const postSchema = new mongoose.Schema({
 		type: String,
 		default: "",
 	},
+	status: {
+		type: String,
+		enum: ["active", "archived", "deleted"],
+		default: "active",
+	},
 	createdAt: {
 		type: Date,
 		default: Date.now,
