@@ -53,6 +53,13 @@ export default function PostList() {
 		return () => clearInterval(interval);
 	}, [sortBy]);
 
+	useEffect(() => {
+		const token = localStorage.getItem("adminToken");
+		if (token === process.env.NEXT_PUBLIC_ADMIN_TOKEN) {
+			setAdmin(true);
+		}
+	}, []);
+
 	const handleVote = async (postId: string, voteType: "up" | "down") => {
 		try {
 			// Load local vote data
@@ -119,6 +126,16 @@ export default function PostList() {
 	const handleReply = async (postId: string) => {
 		const content = reply[postId];
 		if (!content?.trim()) return;
+
+		try {
+			await axios.put(`${backendUrl}/api/posts/createReply`, {
+				postId,
+				reply: content.trim(),
+			});
+			fetchPosts();
+		} catch (err) {
+			console.error("Error replying:", err.message);
+		}
 	};
 
 	const handleSortChange = (newSortBy: string) => {
@@ -236,15 +253,15 @@ export default function PostList() {
 					</div>
 
 					{/* Display replies (if any) */}
-					{post.reply && post.reply.length > 0 && (
-						<div className="mt-4 space-y-2">
-							<div
-								key={reply._id}
-								className="bg-[#D7EAFE] text-[#2563EB] text-sm rounded-md px-3 py-2"
-							>
-								<p className="font-bold text-xs mb-1">ADMIN</p>
-								<p className="text-xs">{reply.content}</p>
+					{/* Admin Response */}
+					{post.reply && (
+						<div className="mt-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
+							<div className="flex items-center mb-2">
+								<div className="bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium">
+									OFFICIAL RESPONSE
+								</div>
 							</div>
+							<p className="text-gray-800 leading-relaxed">{post.reply}</p>
 						</div>
 					)}
 

@@ -125,10 +125,31 @@ const votePost = async (req, res) => {
 	}
 };
 
+const createReply = async (req, res) => {
+	const { postId, reply } = req.body;
+
+	if (!postId || !reply) {
+		return res.status(400).json({ error: "Post ID and reply are required" });
+	}
+
+	try {
+		const post = await Post.findById(postId);
+		if (!post) return res.status(404).json({ error: "Post not found" });
+
+		post.reply = reply;
+		await post.save();
+
+		res.status(200).json({ message: "Reply added successfully", post });
+	} catch (err) {
+		res.status(500).json({ error: "Server error while adding reply" });
+	}
+};
+
 module.exports = {
 	createPost,
 	getAllPosts,
 	getPostById,
 	votePost,
 	getPostCount,
+	createReply,
 };
