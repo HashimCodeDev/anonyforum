@@ -16,6 +16,7 @@ type Post = {
 export default function PostList() {
 	const [posts, setPosts] = useState<Post[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [sortBy, setSortBy] = useState("trending");
 
 	const backendUrl =
 		process.env.NEXT_PUBLIC_BACKEND_URL || "https://anonyforum.onrender.com";
@@ -23,7 +24,7 @@ export default function PostList() {
 	const fetchPosts = () => {
 		try {
 			axios
-				.get(`${backendUrl}/api/posts/getAllPosts`)
+				.get(`${backendUrl}/api/posts/getAllPosts?sortBy=${sortBy}`)
 				.then((res) => {
 					if (!res.data) {
 						return console.log("No posts:", res.data.posts);
@@ -46,14 +47,13 @@ export default function PostList() {
 		fetchPosts();
 		const interval = setInterval(fetchPosts, 20000);
 		return () => clearInterval(interval);
-	}, []);
+	}, [sortBy]);
 
 	const handleVote = async (postId: string, voteType: "up" | "down") => {
 		try {
 			// Load local vote data
 			const localVotes = JSON.parse(localStorage.getItem("userVotes") || "{}");
 			const userVote = localVotes[postId] || null;
-			console.log("User vote for post:", postId, "is", userVote);
 
 			const updatedPosts = posts.map((post) => {
 				if (post._id === postId) {
@@ -64,10 +64,8 @@ export default function PostList() {
 					if (userVote === voteType) {
 						// Unvote
 						newUserVote = null;
-						console.log("Before unvote:", post.upvotes, post.downvotes);
 						if (voteType === "up") newUpvotes--;
 						else newDownvotes--;
-						console.log("After unvote:", newUpvotes, newDownvotes);
 					} else if (userVote) {
 						// Switch vote
 						if (userVote === "up") {
@@ -114,9 +112,23 @@ export default function PostList() {
 		}
 	};
 
-	const [sortBy, setSortBy] = useState("trending");
 	const handleSortChange = (newSortBy: string) => {
 		setSortBy(newSortBy);
+		const sortedPosts = [...posts].sort((a, b) => {
+			if (newSortBy === "trending") {
+				return b.upvotes - a.upvotes; // Sort by upvotes for trending
+			} else if (newSortBy === "newest") {
+				return (
+					new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+				); // Sort by newest
+			}
+			return 0;
+		});
+		fetchPosts(); // Fetch posts again to ensure we have the latest data
+		setPosts(sortedPosts);
+		localStorage.setItem("sortBy", newSortBy);
+		localStorage.setItem("posts", JSON.stringify(sortedPosts));
+		localStorage.setItem("length", String(sortedPosts.length));
 	};
 
 	return (

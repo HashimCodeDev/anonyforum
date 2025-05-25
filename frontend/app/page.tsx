@@ -5,8 +5,21 @@ import { useEffect, useState } from "react";
 
 export default function HomePage() {
 	const [length, setLength] = useState<string | null>(null);
+
 	useEffect(() => {
-		setLength(localStorage.getItem("length"));
+		const updateLength = () => {
+			const storedLength = localStorage.getItem("length");
+			setLength(storedLength);
+		};
+
+		// Initial call
+		updateLength();
+
+		// Set interval to update every 20 seconds (20000ms)
+		const interval = setInterval(updateLength, 20000);
+
+		// Cleanup on unmount
+		return () => clearInterval(interval);
 	}, []);
 
 	return (
@@ -47,7 +60,7 @@ export default function HomePage() {
 						</h1>
 					</div>
 					<p className="text-sm text-[#6A6A6A] mt-1">
-						Anonymous forum for open dialogue
+						Open Dialouge for Mental Health
 					</p>
 				</div>
 				<div className="text-[12px] font-semibold bg-[#D7EAFE] text-[#2563EB] px-3 py-[2px] rounded-full h-fit">
