@@ -124,7 +124,6 @@ export default function PostList() {
 			}
 			return 0;
 		});
-		fetchPosts(); // Fetch posts again to ensure we have the latest data
 		setPosts(sortedPosts);
 		localStorage.setItem("sortBy", newSortBy);
 		localStorage.setItem("posts", JSON.stringify(sortedPosts));
