@@ -4,12 +4,9 @@ const Post = require("../models/Post");
 const createPost = async (req, res) => {
 	try {
 		const { title, content } = req.body;
-		console.log("Received post data:", req.body);
 
 		if (!title || !content)
 			return res.status(400).json({ error: "Title and content are required" });
-
-		console.log("Creating post with title:", title, "and content:", content);
 
 		const post = await Post.create({ title, content });
 		res.status(201).json(post);
@@ -105,9 +102,6 @@ const votePost = async (req, res) => {
 				} else if (voteType === "down") {
 					post.downvotes -= 1;
 				}
-				return res
-					.status(200)
-					.json({ message: "Vote removed successfully", post });
 			} else {
 				// Change vote type to the new one and update vote count
 				existingVote.voteType = voteType;
