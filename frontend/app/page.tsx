@@ -1,11 +1,12 @@
 "use client";
 import PostForm from "@/components/PostForm";
 import PostList from "@/components/PostList";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function HomePage() {
+	const [length, setLength] = useState<string | null>(null);
 	useEffect(() => {
-		const length = localStorage.getItem("length");
+		setLength(localStorage.getItem("length"));
 	}, []);
 
 	return (

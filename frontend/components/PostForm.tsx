@@ -7,7 +7,7 @@ export default function PostForm() {
 	const [loading, setLoading] = useState(false);
 	const [message, setMessage] = useState("");
 	const backendUrl =
-		process.env.BACKEND_URL || "https://anonyforum.onrender.com";
+		process.env.NEXT_PUBLIC_BACKEND_URL || "https://anonyforum.onrender.com";
 
 	const handleSubmit = async () => {
 		if (!content.trim()) {
