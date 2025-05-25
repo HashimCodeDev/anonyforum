@@ -21,7 +21,7 @@ const postSchema = new mongoose.Schema({
 		type: Number,
 		default: 0,
 	},
-	voteType: {
+	userVote: {
 		type: String,
 		enum: ["up", "down", "neutral"],
 		default: "neutral",

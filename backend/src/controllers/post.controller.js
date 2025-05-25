@@ -71,29 +71,29 @@ const votePost = async (req, res) => {
 
 		switch (voteType) {
 			case "up":
-				if (post.voteType === "neutral") {
+				if (post.userVote === "neutral") {
 					post.upvotes += 1;
-					post.voteType = "up";
-				} else if (post.voteType === "down") {
+					post.userVote = "up";
+				} else if (post.userVote === "down") {
 					post.upvotes += 1;
 					post.downvotes -= 1;
-					post.voteType = "up";
-				} else if (post.voteType === "up") {
+					post.userVote = "up";
+				} else if (post.userVote === "up") {
 					post.upvotes -= 1;
-					post.voteType = "neutral";
+					post.userVote = "neutral";
 				}
 				break;
 			case "down":
-				if (post.voteType === "neutral") {
+				if (post.userVote === "neutral") {
 					post.downvotes += 1;
-					post.voteType = "down";
-				} else if (post.voteType === "up") {
+					post.userVote = "down";
+				} else if (post.userVote === "up") {
 					post.downvotes += 1;
 					post.upvotes -= 1;
-					post.voteType = "down";
-				} else if (post.voteType === "down") {
+					post.userVote = "down";
+				} else if (post.userVote === "down") {
 					post.downvotes -= 1;
-					post.voteType = "neutral";
+					post.userVote = "neutral";
 				}
 				break;
 			default:

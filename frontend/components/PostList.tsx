@@ -9,7 +9,7 @@ type Post = {
 	content: string;
 	upvotes: number;
 	downvotes: number;
-	userVote: "up" | "down" | null;
+	userVote: "up" | "down" | "neutral" | null;
 	createdAt: string;
 };
 
