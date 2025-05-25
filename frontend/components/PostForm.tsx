@@ -6,6 +6,8 @@ export default function PostForm() {
 	const [content, setContent] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [message, setMessage] = useState("");
+	const backendUrl =
+		process.env.NEXT_PUBLIC_BACKEND_URL || "https://anonyforum.onrender.com";
 
 	const handleSubmit = async () => {
 		if (!content.trim()) {
@@ -15,18 +17,21 @@ export default function PostForm() {
 
 		try {
 			setLoading(true);
-			const response = await axios.post(
-				"http://localhost:5000/api/posts/createPost",
-				{
-					title: "Anonymous",
-					content: content.trim(),
-				}
-			);
+			const response = await axios.post(`${backendUrl}/api/posts/createPost`, {
+				title: "Anonymous",
+				content: content.trim(),
+			});
+
+			setContent("");
+			setMessage("Post created successfully!");
 
 			if (response.data?.message) {
 				setMessage(response.data.message);
 				setContent("");
 			}
+			setTimeout(() => {
+				setMessage("");
+			}, 3000);
 		} catch (err) {
 			console.error("Error posting:", err);
 			setMessage("Failed to create post.");

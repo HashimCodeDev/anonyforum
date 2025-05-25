@@ -1,7 +1,27 @@
+"use client";
 import PostForm from "@/components/PostForm";
 import PostList from "@/components/PostList";
+import { useEffect, useState } from "react";
 
 export default function HomePage() {
+	const [length, setLength] = useState<string | null>(null);
+
+	useEffect(() => {
+		const updateLength = () => {
+			const storedLength = localStorage.getItem("length");
+			setLength(storedLength);
+		};
+
+		// Initial call
+		updateLength();
+
+		// Set interval to update every 20 seconds (20000ms)
+		const interval = setInterval(updateLength, 20000);
+
+		// Cleanup on unmount
+		return () => clearInterval(interval);
+	}, []);
+
 	return (
 		<main className="min-h-screen bg-[#F2F6FB] text-black font-sans px-8 pt-6 max-w-4xl mx-auto">
 			<header className="mb-4 flex items-start justify-between">
@@ -40,11 +60,11 @@ export default function HomePage() {
 						</h1>
 					</div>
 					<p className="text-sm text-[#6A6A6A] mt-1">
-						Anonymous forum for open dialogue
+						Open Dialouge for Mental Health
 					</p>
 				</div>
 				<div className="text-[12px] font-semibold bg-[#D7EAFE] text-[#2563EB] px-3 py-[2px] rounded-full h-fit">
-					post counts: 001
+					post counts: {length || 0}
 				</div>
 			</header>
 

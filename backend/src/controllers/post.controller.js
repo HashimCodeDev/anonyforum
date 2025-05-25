@@ -4,9 +4,12 @@ const Post = require("../models/Post");
 const createPost = async (req, res) => {
 	try {
 		const { title, content } = req.body;
+		console.log("Received post data:", req.body);
 
 		if (!title || !content)
 			return res.status(400).json({ error: "Title and content are required" });
+
+		console.log("Creating post with title:", title, "and content:", content);
 
 		const post = await Post.create({ title, content });
 		res.status(201).json(post);
@@ -18,14 +21,33 @@ const createPost = async (req, res) => {
 // Get all posts
 const getAllPosts = async (req, res) => {
 	try {
-		const posts = await Post.find().sort({ upvotes: -1, createdAt: -1 }); // Sort by upvotes and then by creation date
+		const sortBy = req.query.sortBy || "trending"; // Default sort by creation date
+		let posts = [];
 
-		res.status(200).json(posts, {
+		switch (sortBy) {
+			case "trending":
+				posts = await Post.find().sort({
+					upvotes: -1,
+					downvotes: 1,
+				}); // Sort by upvotes and then by creation date
+				break;
+			case "newest":
+				posts = await Post.find().sort({ createdAt: -1 }); // Newest posts: sort by creation date in descending order
+				break;
+			case "oldest":
+				posts = await Post.find().sort({ createdAt: 1 }); // Oldest posts: sort by creation date in ascending order
+				break;
+			default:
+				return res.status(400).json({ error: "Invalid sort option" });
+		}
+		res.status(200).json({
+			posts,
 			count: posts.length,
 			message: "Posts fetched successfully",
 		});
 	} catch (err) {
 		res.status(500).json({ error: "Server error while fetching posts" });
+		console.error("Error fetching posts:", err.message);
 	}
 };
 
@@ -41,59 +63,65 @@ const getPostById = async (req, res) => {
 	}
 };
 
-const upvotePost = async (req, res) => {
+const getPostCount = async (req, res) => {
 	try {
-		const post = await Post.findById(req.params.id);
-		if (!post) return res.status(404).json({ error: "Post not found" });
-
-		post.upvotes += 1;
-		await post.save();
-
-		res.status(200).json(post);
+		const count = await Post.countDocuments();
+		res
+			.status(200)
+			.json({ count, message: "Total post count fetched successfully" });
 	} catch (err) {
-		res.status(500).json({ error: "Server error while upvoting post" });
+		res.status(500).json({ error: "Server error while fetching post count" });
 	}
 };
 
-const downvotePost = async (req, res) => {
-	try {
-		const post = await Post.findById(req.params.id);
-		if (!post) return res.status(404).json({ error: "Post not found" });
+const votePost = async (req, res) => {
+	const { postId, voteType } = req.body;
 
-		post.downvotes += 1;
-		await post.save();
-
-		res.status(200).json(post);
-	} catch (err) {
-		res.status(500).json({ error: "Server error while downvoting post" });
+	if (!postId || !voteType) {
+		return res
+			.status(400)
+			.json({ error: "Post ID and vote type are required" });
 	}
-};
 
-const upvoteUpdate = async (req, res) => {
 	try {
-		const post = await Post.findById(req.params.id);
+		const post = await Post.findById(postId);
 		if (!post) return res.status(404).json({ error: "Post not found" });
 
-		post.upvotes -= 1;
+		switch (voteType) {
+			case "up":
+				if (post.userVote === "neutral") {
+					post.upvotes += 1;
+					post.userVote = "up";
+				} else if (post.userVote === "down") {
+					post.upvotes += 1;
+					post.downvotes -= 1;
+					post.userVote = "up";
+				} else if (post.userVote === "up") {
+					post.upvotes -= 1;
+					post.userVote = "neutral";
+				}
+				break;
+			case "down":
+				if (post.userVote === "neutral") {
+					post.downvotes += 1;
+					post.userVote = "down";
+				} else if (post.userVote === "up") {
+					post.downvotes += 1;
+					post.upvotes -= 1;
+					post.userVote = "down";
+				} else if (post.userVote === "down") {
+					post.downvotes -= 1;
+					post.userVote = "neutral";
+				}
+				break;
+			default:
+				return res.status(400).json({ error: "Invalid vote type" });
+		}
+
 		await post.save();
-
-		res.status(200).json(post);
+		res.status(200).json({ message: "Vote updated successfully", post });
 	} catch (err) {
-		res.status(500).json({ error: "Server error while updating upvotes" });
-	}
-};
-
-const downvoteUpdate = async (req, res) => {
-	try {
-		const post = await Post.findById(req.params.id);
-		if (!post) return res.status(404).json({ error: "Post not found" });
-
-		post.downvotes -= 1;
-		await post.save();
-
-		res.status(200).json(post);
-	} catch (err) {
-		res.status(500).json({ error: "Server error while updating downvotes" });
+		res.status(500).json({ error: "Server error while voting on post" });
 	}
 };
 
@@ -101,8 +129,6 @@ module.exports = {
 	createPost,
 	getAllPosts,
 	getPostById,
-	upvotePost,
-	downvotePost,
-	upvoteUpdate,
-	downvoteUpdate,
+	votePost,
+	getPostCount,
 };
