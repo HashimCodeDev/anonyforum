@@ -4,6 +4,7 @@ import axios from "axios";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
 import { Trash2 } from "lucide-react";
+import timeAgo from "@/utils/TimeGenerator";
 
 type Post = {
 	_id: string;
@@ -167,7 +168,10 @@ export default function PostList() {
 		setSortBy(newSortBy);
 		const sortedPosts = [...posts].sort((a, b) => {
 			if (newSortBy === "trending") {
-				return b.upvotes - a.upvotes; // Sort by upvotes for trending
+				const netA = a.upvotes - a.downvotes;
+				const netB = b.upvotes - b.downvotes;
+				return netB - netA;
+				// Sort by upvotes for trending
 			} else if (newSortBy === "newest") {
 				return (
 					new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -245,10 +249,7 @@ export default function PostList() {
 					className="mb-8 bg-white border border-[#9B9B9B] rounded-md p-4"
 				>
 					<p className="text-xs text-[#7A7A7A] mb-1">
-						{new Date(post.createdAt).toLocaleTimeString([], {
-							hour: "2-digit",
-							minute: "2-digit",
-						})}
+						{timeAgo(post.createdAt)}
 					</p>
 					<div className="border border-[#C5C5C5] rounded-md p-3 mb-2">
 						<p className="text-base text-black font-bold">{post.title}</p>
