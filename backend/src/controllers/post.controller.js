@@ -23,11 +23,18 @@ const getAllPosts = async (req, res) => {
 
 		switch (sortBy) {
 			case "trending":
-				posts = await Post.find().sort({
-					upvotes: -1,
-					downvotes: 1,
-				}); // Sort by upvotes and then by creation date
+				posts = await Post.aggregate([
+					{
+						$addFields: {
+							netVotes: { $subtract: ["$upvotes", "$downvotes"] },
+						},
+					},
+					{
+						$sort: { netVotes: -1, createdAt: -1 }, // Sort by net votes and then by creation date
+					},
+				]);
 				break;
+
 			case "newest":
 				posts = await Post.find().sort({ createdAt: -1 }); // Newest posts: sort by creation date in descending order
 				break;
