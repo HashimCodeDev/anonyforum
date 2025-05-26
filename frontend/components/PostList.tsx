@@ -31,7 +31,7 @@ export default function PostList() {
 	const [message, setMessage] = useState<string | null>(null);
 	const [admin, setAdmin] = useState<boolean>(false);
 	const [localVotes, setLocalVotes] = useState<Record<string, string>>({});
-	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+	const [showDeleteDialog, setShowDeleteDialog] = useState<String | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
 
 	const backendUrl =
@@ -294,7 +294,8 @@ export default function PostList() {
 						{/* Delete Button */}
 						{admin && (
 							<button
-								onClick={() => setShowDeleteDialog(true)}
+								disabled={true}
+								onClick={() => setShowDeleteDialog(post._id)}
 								className="group relative inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
 							>
 								<Trash2
@@ -309,7 +310,7 @@ export default function PostList() {
 
 					<DeleteConfirmationDialog
 						isOpen={showDeleteDialog}
-						onClose={() => setShowDeleteDialog(false)}
+						onClose={() => setShowDeleteDialog(null)}
 						onConfirm={() => handleDelete(post._id)}
 						title="Delete Post"
 						message="Are you sure you want to delete this post? This action cannot be undone."
